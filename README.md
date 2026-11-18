@@ -85,6 +85,7 @@ ProdutoDAO dao = new ProdutoDAOSqlite("jdbc:sqlite:starlog.db");
 | **Read**        | lista todos os produtos em colunas (ID, NOME, PREÇO, ESTOQUE)                              |
 | **Update**      | teclado: estoque 15 e preço R$ 289,90; confere o retorno `true` e relê o registro do banco |
 | **Delete**      | remove o mousepad pelo id e tenta excluir o id inexistente 888 (retorno `false` tratado)   |
+| **Integridade** | provoca cada `IllegalArgumentException` (construtores, setters e `salvar`) e aceita estoque 0 |
 | **Final State** | lista os produtos e confirma que restou exatamente 1                                       |
 
 Saída esperada (resumida):
@@ -100,6 +101,21 @@ atualizar() retornou: true
 == [DELETE] Removendo produtos ==
 id 2 (Mousepad (id real)): excluído com sucesso.
 id 888 (id inexistente): nenhum produto com esse id, nada foi excluído.
+
+== [INTEGRIDADE] Invariantes do Produto ==
+Construtores:
+  [REJEITADO] nome null                            -> Nome deve ter ao menos 3 caracteres: null
+  [REJEITADO] nome "AB"                            -> Nome deve ter ao menos 3 caracteres: 'AB'
+  [REJEITADO] preço 0.0                            -> Preço deve ser maior que zero: 0.0
+  [REJEITADO] preço -10.0                          -> Preço deve ser maior que zero: -10.0
+  [REJEITADO] estoque -1                           -> Estoque não pode ser negativo: -1
+  [ACEITO]    estoque 0 (limite válido)
+Setters no Teclado já válido:
+  [REJEITADO] setPreco(-5)                         -> Preço deve ser maior que zero: -5.0
+  [REJEITADO] setEstoque(-1)                       -> Estoque não pode ser negativo: -1
+Teclado após as tentativas (inalterado): Produto[id=1, nome='Teclado Mecânico RGB', preco=R$ 289,90, estoque=15]
+Persistência:
+  [REJEITADO] dao.salvar(new Produto("AB", ...))   -> Nome deve ter ao menos 3 caracteres: 'AB'
 
 == [FINAL STATE] Estado final do banco ==
 --------------------------------------------------------
@@ -120,4 +136,4 @@ Total de produtos no banco: 1 (OK: exatamente 1)
 - [x] `setPreco` e `setEstoque` respeitando as mesmas invariantes
 - [x] Contrato `ProdutoDAO` + implementação `ProdutoDAOSqlite`
 - [x] `Main`: simulação do ciclo completo (Create, Read, Update, Delete, Final State)
-- [ ] `Main`: demonstrar casos inválidos (`IllegalArgumentException`) e o limite estoque 0
+- [x] `Main`: demonstrar casos inválidos (`IllegalArgumentException`) e o limite estoque 0

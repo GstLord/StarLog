@@ -58,6 +58,24 @@ public class Main {
         excluirComFeedback(dao, mousepad.getId(), "Mousepad (id real)");
         excluirComFeedback(dao, 888L, "id inexistente");
 
+        // ------------------------------------------------------------ INTEGRIDADE
+        titulo("[INTEGRIDADE] Invariantes do Produto");
+        System.out.println("Construtores:");
+        tentar("nome null", () -> new Produto(null, 99.90, 10));
+        tentar("nome \"AB\"", () -> new Produto("AB", 99.90, 10));
+        tentar("preço 0.0", () -> new Produto("Headset Gamer", 0.0, 10));
+        tentar("preço -10.0", () -> new Produto("Headset Gamer", -10.0, 10));
+        tentar("estoque -1", () -> new Produto("Headset Gamer", 99.90, -1));
+        tentar("estoque 0 (limite válido)", () -> new Produto("Headset Gamer", 99.90, 0));
+
+        System.out.println("Setters no Teclado já válido:");
+        tentar("setPreco(-5)", () -> teclado.setPreco(-5));
+        tentar("setEstoque(-1)", () -> teclado.setEstoque(-1));
+        System.out.println("Teclado após as tentativas (inalterado): " + teclado);
+
+        System.out.println("Persistência:");
+        tentar("dao.salvar(new Produto(\"AB\", ...))", () -> dao.salvar(new Produto("AB", 10.0, 1)));
+
         // ----------------------------------------------------------- FINAL STATE
         titulo("[FINAL STATE] Estado final do banco");
         List<Produto> restantes = dao.listarTodos();
@@ -73,6 +91,16 @@ public class Main {
             System.out.printf("id %d (%s): excluído com sucesso.%n", id, descricao);
         } else {
             System.out.printf("id %d (%s): nenhum produto com esse id, nada foi excluído.%n", id, descricao);
+        }
+    }
+
+    /** Executa a ação e mostra se a invariante a rejeitou ou aceitou, sem interromper a simulação. */
+    private static void tentar(String caso, Runnable acao) {
+        try {
+            acao.run();
+            System.out.printf("  [ACEITO]    %s%n", caso);
+        } catch (IllegalArgumentException e) {
+            System.out.printf("  [REJEITADO] %-36s -> %s%n", caso, e.getMessage());
         }
     }
 
